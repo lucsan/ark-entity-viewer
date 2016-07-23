@@ -16,6 +16,7 @@ $resultCount = count($results);
       body {font-family: Tahoma;}
       .categories {background-color: #eeeeee; font-size: large;}
       .catwords { background-color: #eeffee; }
+      .details {background-color: #eeeeff; }
     </style>
   </head>
   <body>
@@ -50,8 +51,15 @@ $resultCount = count($results);
 
     foreach ($results as $key => $result) {
       echo '
-      <tr><td><a href="entityView.php?title=',$result->title,'&info">',$result->title,'</a></td>
+      <tr><td><a href="entityView.php?title=',$result->title,'&details">',$result->title,'</a></td>
       <td>',$result->info,'</td></tr>';
+      if (isset($_GET['details'])) {
+          echo '<div class="details" >';
+        foreach($result as $name => $value) {
+          echo '<tr><td>',$name,'<td>',$value,'</td></tr>';
+        }
+        echo '</div>';
+      }
     }
     ?>
 

@@ -9,8 +9,7 @@ $categories = [];
 $cmds = [];
 $results = [];
 
-$json = file_get_contents('entitys.json');
-
+$json = file_get_contents('data.json');
 $data = json_decode($json);
 
 $blueprints = $data->blueprints;
@@ -19,6 +18,7 @@ $catKeys = $data->sorts->catkeys;
 $catWords = [];
 $catName = '';
 
+//print_r($blueprints);die();
 
 if (isset($argv)) {
   $vector = 'cli';
@@ -97,6 +97,7 @@ function doCommands ()
 
     if ($cmd == 'info') $results = filterResults('info', $filter, $results);
 
+    if ($cmd == 'details') $results = filterResults('details', $filter, $results);
   }
 
 }
@@ -120,28 +121,13 @@ function filterByCategory ($filter = null, $results = [])
   return $new;
 }
 
-
-function listByInfo ($results = [])
-{
-  $new = [];
-  foreach ($results as $key => $item) {
-    $obj = (object) [
-      'title' => $item->title,
-      'info' => ''
-    ];
-    $obj->info = $item->giveItemId != ''? $item->giveItemId: $item->giveItem;
-    $new[] = $obj;
-  }
-  return $new;
-}
-
 function filterResults ($type = null, $filter = null, $results = [])
 {
   $results = makeList($results);
   if ($type == null) return $results;
 
-  if ($type == 'info') {
-    $results = listByInfo($results);
+  if ($type == 'info' || $type == 'details') {
+    $results = listInfo($type, $results);
   } else {
     if ($filter) {
       $results = filterByType($type, $filter, $results);
@@ -150,6 +136,42 @@ function filterResults ($type = null, $filter = null, $results = [])
     }
   }
   return $results;
+}
+
+function listByDetail ($results = [])
+{
+  $new = [];
+  foreach ($results as $key => $item) {
+    $obj = (object) [
+      'title' => $item->title,
+      'info' => '',
+      'max' => $item->max,
+      'blueprint' => $item->blueprint,
+    ];
+    $obj->info = $item->giveItemId != ''? $item->giveItemId: $item->giveItem;
+    $new[] = $obj;
+  }
+  return $new;
+}
+
+
+function listInfo ($type= 'info', $results = [])
+{
+  $new = [];
+  foreach ($results as $key => $item) {
+    $obj = (object) [
+      'title' => $item->title,
+      'info' => ''
+    ];
+    if ($type == 'details') {
+      $obj->max = $item->max;
+      $obj->blueprint = $item->blueprint;
+      $obj->giveItem = $item->giveItem;
+    }
+    $obj->info = $item->giveItemId != ''? $item->giveItemId: $item->giveItem;
+    $new[] = $obj;
+  }
+  return $new;
 }
 
 function filterByType ($type = null, $filter = null, $results = [])

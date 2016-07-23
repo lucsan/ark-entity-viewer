@@ -1,35 +1,44 @@
 <?php
+/**
+ * Requires an entities.json file produced by either htmlParse or PasteParse.
+ * Creates data.json containing the entities and vareous sort types.
+ */
+namespace ark;
 
-$chunk = []; // Holds the main chunk of data;
-$pre = [];  // pre list page text.
-$entitys = [];  // list of entitys. (ie: dinos);
-$blueprints = []; // Array of item object blueprint details.
-$sortings = []; // Multi-array of things to sort blueprints by (based on blueprint path)
+$json = file_get_contents('entities.json');
+$entities = json_decode($json);
 
-$preSegmentor = 'Simple Pistol.png';
-$ItemSegmentor = 'To spawn an entity :';
+$blueprints = makeAdminLines($entities->entities);
 
-
-$data = file_get_contents('entityIds');
-$array = explode(PHP_EOL, $data);
-
-$array = segmentor($array, $preSegmentor);
-$pre = $array['pre'];
-$chunk = $array['chunk'];
-
-//print_r($pre);die();
-$array = segmentor($chunk, $ItemSegmentor);
-$items = $array['pre'];
-$chunk = $array['chunk'];
-
-$items = removeIcons($items);
-
-$blueprints = parseBlueprint($items);
-
+//print_r($entities); die();
 $sortings = sortings($blueprints);
 
 $json = json_encode(['blueprints'=> $blueprints, 'sorts' => $sortings]);
-file_put_contents('entitys.json', $json);
+file_put_contents('data.json', $json);
+
+
+function makeAdminLines($items)
+{
+  foreach ($items as $item) {
+    $blueprint = $item->blueprint;
+    // Makeing the paths.
+    // Remove beginging of string.
+    $blueprint = substr($blueprint, 10, strlen($blueprint));
+    // Remove quotes.
+    $blueprint = str_replace(['"', "'"], '', $blueprint);
+    // Remove unwanted (common) path elements.
+    $blueprint = str_replace(['/Game/', 'PrimalEarth/', 'CoreBlueprints/'], '', $blueprint);
+    $item->bluePath = explode('/', $blueprint);
+
+    // Create admincheat lines.
+    $item->giveItem = 'admincheat giveitem ' . $item->blueprint . ' ' . $item->max . ' 100 0';
+
+    if (is_numeric($item->id) && $item->id > -1) {
+      $item->giveItemId = 'admincheat giveitemnum ' . $item->id . ' ' . $item->max . ' 100 0';
+    }
+  }
+  return $items;
+}
 
 /**
  * Runs Through blueprint array and create vareous sort possibilites (ie: categories).
@@ -84,7 +93,6 @@ function sortings ($array)
 }
 
 function extractCatkeys ($catkeys, $item) {
-  //print_r($item->title);
   $new = [];
   $words = explode(' ', $item->title);
   foreach ($words as $word) {
@@ -93,158 +101,5 @@ function extractCatkeys ($catkeys, $item) {
   }
   return $catkeys;
 }
-
-
-/**
- * Parses raw input data into item blueprint array data.
- * @param  [type] $array [description]
- * @return [type]        [description]
- */
-function parseBlueprint ($array)
-{
-  $items = [];
-  foreach ($array as $key => $item) {
-    $data = explode("\t", $item);
-    if (count($data) < 5) continue;
-    $inst = new item();
-    if (is_numeric($data[0])) $inst->id = $data[0];
-    $inst->title = $data[1];
-    $inst->category = $data[2];
-    $inst->max = $data[3];
-    $inst->setBlueprint($data[4]);
-
-    $items[] = $inst;
-  }
-  return $items;
-}
-
-
-function getIds ($array)
-{
-  $hasId =[];
-  $noId = [];
-  foreach ($array as $key => $item) {
-    $data = explode("\t", $item);
-print_r($data);
-    echo  PHP_EOL;
-
-
-
-
-    if (is_numeric($data[0]) - 0) {
-      $hasId[] = $item;
-    }else {
-      $noId[] = $item;
-    }
-  }
-  return ['has' => $hasId, 'not' => $noId];
-}
-
-
-
-
-
-function removeIcons ($array)
-{
-  if (count($array) < 1) return $array;
-  $new = [];
-  foreach ($array as $key => $item) {
-    if (stripos($item, '.png') > -1 ) continue;
-    $new[] = $item;
-  }
-  return $new;
-}
-
-
-function segmentor ($array, $segmentor)
-{
-  if(count($array) < 1) {
-    echo 'empty array at segmentor ', $segmentor, PHP_EOL;
-    return $array;
-  }
-
-  $pre = [];
-  $main = [];
-  $found = false;
-  foreach ($array as $key => $item) {
-    if (trim($item) == $segmentor && $found == false) {
-      $found = true;
-      return ['chunk' => $array, 'pre' => $pre];
-    }
-    if (!$found) {
-      $pre[] = $item;
-      unset($array[$key]);
-    }
-  }
-  if (!$found) echo 'error in segmentor ', $segmentor;
-}
-
-
-class item {
-  public $id = -1;
-  public $title = '';
-  public $max = 1;
-  public $category = '';
-  public $blueprint = '';
-  public $bluePath = [];
-  public $giveItem = '';
-  public $giveItemId = '';
-
-  public function __constuct ($id = null)
-  {
-    $this->id = $id;
-  }
-
-  public function setBlueprint ($blueprintString) {
-    $blueprintString = trim($blueprintString);
-    $this->blueprint = $blueprintString;
-// Check for non-standard blueprint path.
-//if (stripos($blueprintString, "Blueprint '/Game/PrimalEarth/") == -1) echo $blueprintString;
-
-  // Remove beginging of string.
-    $blueprintString = substr($blueprintString, 10, strlen($blueprintString));
-    // Remove quotes.
-    $blueprintString = str_replace(['"', "'"], '', $blueprintString);
-
-    $blueprintString = str_replace(['/Game/', 'PrimalEarth/', 'CoreBlueprints/'], '', $blueprintString);
-
-    $this->bluePath = explode('/', $blueprintString);
-
-    //echo $this->max, PHP_EOL;
-
-    $this->giveItem = 'admincheat giveitem ' . $this->blueprint . ' ' . $this->max . ' 100 0';
-
-    if ($this->id > -1) {
-      $this->giveItemId = 'admincheat giveitemnum ' . $this->id . ' ' . $this->max . ' 100 0';
-    }
-    //$this->blueCategory = substr($blueprintString, 0, stripos($blueprintString, '/'));
-
-
-
-
-
-
-
-    //echo $blueprintString, PHP_EOL;
-  }
-
-
-}
-
-
-/*
-
-[19] => Changing the 0 to a 1 in either of these examples will give you a blueprint of the item instead.
-[20] => Note: Blueprint paths (or any UE4 asset path) are not case sensitive. The case shown below is how it appears in the directory structure as it was compiled.
-[21] => For all eggs of breedable creatures (e.g. not for Titanboa) there is also a fertilized version available. Add »_Fertilized« two times like so:
-[22] => "Blueprint'/Game/PrimalEarth/Test/PrimalItemConsumable_Egg_Stego.PrimalItemConsumable_Egg_Stego'"
-[23] => "Blueprint'/Game/PrimalEarth/Test/PrimalItemConsumable_Egg_Stego_Fertilized.PrimalItemConsumable_Egg_Stego_Fertilized'"
-[24] => Icon        Item ID Name    Category        Stack Size      Blueprint Path
-[25] => Simple Pistol.png
-[26] => 1   Simple Pistol   Weapons 1       "Blueprint'/Game/PrimalEarth/CoreBlueprints/Weapons/PrimalItem_WeaponGun.PrimalItem_WeaponGun'"
-[27] => Assault Rifle.png
-
-
- */
 
 ?>
