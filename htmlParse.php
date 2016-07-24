@@ -1,5 +1,5 @@
 <?php
-namespace ark;
+namespace ark\tool;
 $output = '';
 $cu = curl_init('ark.gamepedia.com/Entity_IDs');
 curl_setopt($cu, CURLOPT_RETURNTRANSFER, true);
@@ -11,15 +11,26 @@ curl_close($cu);
 //$output = file_get_contents('entityIdSource');
 $array = explode('<table', $output);
 
-//print_r($array); die();
-$array = explode('</table>', $array[1]);
+// array[1] = entities
+// array[3] = dinos
+//print_r($array[3]); die();
+$rawEntity = explode('</table>', $array[1]);
+$rawDino = explode('</table>', $array[3]);
 
-$rawEntity = $array[0];
-$items = chunkChomp($rawEntity);
+//print_r($rawDino); die();
+$rawEntity = $rawEntity[0];
+$rawDino = $rawDino[0];
 
+//print_r($array[1]); die();
 
-$json = json_encode(['entities'=> $items]);
-file_put_contents('entities.json', $json);
+$entities = chunkChomp($rawEntity);
+$dinos = chunkChomp($rawDino);
+//print_r($dinos);
+$json = json_encode(['entities'=> $entities]);
+file_put_contents('data/entities.json', $json);
+$json = json_encode(['dinos'=> $dinos]);
+file_put_contents('data/dinos.json', $json);
+
 //print_r($items);
 //file_put_contents('entityIdChop', print_r($array[1], true));
 

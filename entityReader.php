@@ -1,8 +1,6 @@
 <?php
 namespace ark;
 
-error_reporting(E_ALL);
-
 $vector = null; // incomming vector ie: cli or webserver.
 $blueprints = [];
 $categories = [];

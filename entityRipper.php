@@ -5,21 +5,67 @@
  */
 namespace ark;
 
-$json = file_get_contents('entities.json');
+$json = file_get_contents('data/entities.json');
 $entities = json_decode($json);
 
-$blueprints = makeAdminLines($entities->entities);
+$json = file_get_contents('data/dinos.json');
+$dinos = json_decode($json);
 
-//print_r($entities); die();
-$sortings = sortings($blueprints);
+//print_r($dinos->dinos); die();
 
-$json = json_encode(['blueprints'=> $blueprints, 'sorts' => $sortings]);
-file_put_contents('data.json', $json);
+$entities = makeAdminLines($entities->entities, 'entity');
+$dinos = makeAdminLines($dinos->dinos, 'dino');
 
+//print_r($dinos); die();
+//print_r($entities);
+//die();
+//
+$sortings = sortings($entities);
 
-function makeAdminLines($items)
+$json = json_encode(['entities'=> $entities, 'sorts' => $sortings]);
+file_put_contents('data/entityData.json', $json);
+//
+
+$sortings = sortings($dinos);
+
+$json = json_encode(['dinos'=> $dinos, 'sorts' => $sortings]);
+file_put_contents('data/dinoData.json', $json);
+
+//print_r($sortings); die();
+
+function makeAdminLines($items, $type)
 {
   foreach ($items as $item) {
+    $item = makeBlueprintPath($item);
+    if ($type == 'entity') entityAdminLines($item);
+    if ($type == 'dino') dinoAdminLines($item);
+  }
+  return $items;
+}
+
+function dinoAdminLines ($item)
+{
+  // Create admincheat lines.
+  $item->summon = 'admincheat summon ' . $item->blueprint;
+  // distance (aprox 2 foundations, y, z, level).
+  $item->spawn = 'admincheat spawnDino ' .$item->blueprint . ' 500 0 0 20';
+
+  return $item;
+}
+
+function entityAdminLines ($item)
+{
+  // Create admincheat lines.
+  $item->giveItem = 'admincheat giveitem ' . $item->blueprint . ' ' . $item->max . ' 100 0';
+  // If entity has numeric id make an admin line for that too.
+  if (is_numeric($item->id) && $item->id > -1) {
+    $item->giveItemId = 'admincheat giveitemnum ' . $item->id . ' ' . $item->max . ' 100 0';
+  }
+  return $item;
+}
+
+function makeBlueprintPath ($item)
+{
     $blueprint = $item->blueprint;
     // Makeing the paths.
     // Remove beginging of string.
@@ -30,14 +76,7 @@ function makeAdminLines($items)
     $blueprint = str_replace(['/Game/', 'PrimalEarth/', 'CoreBlueprints/'], '', $blueprint);
     $item->bluePath = explode('/', $blueprint);
 
-    // Create admincheat lines.
-    $item->giveItem = 'admincheat giveitem ' . $item->blueprint . ' ' . $item->max . ' 100 0';
-
-    if (is_numeric($item->id) && $item->id > -1) {
-      $item->giveItemId = 'admincheat giveitemnum ' . $item->id . ' ' . $item->max . ' 100 0';
-    }
-  }
-  return $items;
+    return $item;
 }
 
 /**

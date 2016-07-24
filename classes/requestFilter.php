@@ -34,6 +34,11 @@ class requestFilter {
     }
   }
 
+  public function getVector ()
+  {
+    return $this->vector;
+  }
+
   public function getCmds ()
   {
     return $this->cmds;
@@ -60,7 +65,9 @@ class requestFilter {
   private function wsvCmds ($get)
   {
     foreach ($get as $key => $arg) {
-      $cmds[$key] = $arg;
+      if ($arg == null) $arg = [];
+      if (is_string($arg)) $arg = [$arg];
+        $cmds[$key] = $arg;
     }
     return $cmds;
   }

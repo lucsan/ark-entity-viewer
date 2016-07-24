@@ -8,7 +8,7 @@
 </head>
 <body>
   <div>
-    <a href="entityView.php?list">Entity Viewer</a>
+    <a href="ark.php?entity&list">Entity Viewer</a>
   </div>
 </body>
 </html>
