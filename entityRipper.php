@@ -11,27 +11,19 @@ $entities = json_decode($json);
 $json = file_get_contents('data/dinos.json');
 $dinos = json_decode($json);
 
-//print_r($dinos->dinos); die();
-
 $entities = makeAdminLines($entities->entities, 'entity');
 $dinos = makeAdminLines($dinos->dinos, 'dino');
 
-//print_r($dinos); die();
-//print_r($entities);
-//die();
-//
 $sortings = sortings($entities);
-
+//\ark\pr($entities,'', 'die');
 $json = json_encode(['entities'=> $entities, 'sorts' => $sortings]);
 file_put_contents('data/entityData.json', $json);
-//
 
 $sortings = sortings($dinos);
 
 $json = json_encode(['dinos'=> $dinos, 'sorts' => $sortings]);
 file_put_contents('data/dinoData.json', $json);
 
-//print_r($sortings); die();
 
 function makeAdminLines($items, $type)
 {
@@ -50,6 +42,8 @@ function dinoAdminLines ($item)
   // distance (aprox 2 foundations, y, z, level).
   $item->spawn = 'admincheat spawnDino ' .$item->blueprint . ' 500 0 0 20';
 
+  $item->info = $item->summon;
+
   return $item;
 }
 
@@ -57,10 +51,13 @@ function entityAdminLines ($item)
 {
   // Create admincheat lines.
   $item->giveItem = 'admincheat giveitem ' . $item->blueprint . ' ' . $item->max . ' 100 0';
+  $item->info = $item->giveItem;
   // If entity has numeric id make an admin line for that too.
   if (is_numeric($item->id) && $item->id > -1) {
     $item->giveItemId = 'admincheat giveitemnum ' . $item->id . ' ' . $item->max . ' 100 0';
+    $item->info = $item->giveItemId;
   }
+
   return $item;
 }
 
@@ -93,8 +90,9 @@ function sortings ($array)
 
   // Categories
   foreach ($array as $key => $item) {
-    if (!isset($sorts['categories'][$item->category])) $sorts['categories'][$item->category] = 0;
-    $sorts['categories'][$item->category] += 1;
+    $category = strtolower($item->category);
+    if (!isset($sorts['categories'][$category])) $sorts['categories'][$category] = 0;
+    $sorts['categories'][$category] += 1;
     // Paths
     if (!isset($sorts['path'][$item->bluePath[0]])) $sorts['path'][$item->bluePath[0]]['count'] = 0;
     $sorts['path'][$item->bluePath[0]]['count']  += 1;
@@ -121,12 +119,11 @@ function sortings ($array)
   }
 
   // catkeys
-  if (!isset($sorts['catkeys'][$item->category])) {
-    $sorts['catkeys'][$item->category] = [];
+  if (!isset($sorts['catkeys'][$category])) {
+    $sorts['catkeys'][$category] = [];
   }
-  $catkeys = $sorts['catkeys'][$item->category];
-  $sorts['catkeys'][$item->category] = extractCatkeys($catkeys, $item);
-
+  $catkeys = $sorts['catkeys'][$category];
+  $sorts['catkeys'][$category] = extractCatkeys($catkeys, $item);
   }
   return $sorts;
 }
@@ -136,7 +133,12 @@ function extractCatkeys ($catkeys, $item) {
   $words = explode(' ', $item->title);
   foreach ($words as $word) {
     $word = str_replace(['(', ')'], '', $word);
-    $catkeys[$word] = '';
+    $word = strtolower($word);
+    if (isset($catKeys[$word])) {
+      $catKeys[$word] += 1;
+    } else {
+      $catkeys[$word] = 1;
+    }
   }
   return $catkeys;
 }

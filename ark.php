@@ -13,31 +13,27 @@ use ark\tool\requestFilter;
 use ark\tool\dataBuilder;
 
 $data = [];
+$type = '';
 $rf = new requestFilter();
-$vector = $rf->getVector();
-$cmds = $rf->getCmds();
+$vector = $rf->getVector(); // cli or wsv.
+$cmds = $rf->getCmds(); // Return a list of commands.
 
-pr($cmds,'Commands');
+//pr($cmds,'Commands');
 
 if (isset($cmds['dino'])) {
+  $type = 'dino';
   $builder = new dataBuilder('dino');
 } else {
+  $type = 'entity';
   $builder = new dataBuilder('entity');
 }
 
 $results = $builder->commands($cmds);
-$categories = $builder->getCategories();
-$catWords = $builder->getCatkeys();
-pr($builder->getCategories(),'Categories');
-pr($builder->getCatkeys(),'CatKeys');
+$categories = $builder->categories();
+$catWords = $builder->catkeys();
 
-
-// if (isset($cmds['dinos'])) {
-//
-// }
-
-
-
-pr($results, 'Results');
+pr($builder->categories(),'Categories');
+//pr($catWords,'CatKeys');
+//pr($results, 'Results');
 
 ?>

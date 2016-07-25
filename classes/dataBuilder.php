@@ -28,37 +28,42 @@ class dataBuilder {
     }
     $this->type = $type;
     $this->categories = $data->sorts->categories;
-    $this->catKeys = $data->sorts->catkeys;
+    $this->catKeys =  (array) $data->sorts->catkeys;
     $this->jsonData = $data;
-    // \ark\pr($this->categories,'categories', 'ended');
   }
 
   public function commands ($cmds)
   {
-    //\ark\pr($cmds, 'commands');
     $this->cmds = $cmds;
     foreach ($cmds as $cmd => $qualifiers) {
       if ($cmd == 'list')  $cmd = 'mainList';  // Required for php 5. (Dosen't like function list ())
-        //\ark\pr($qualifiers, 'qualifs');
-      // 3 Conditions -
-      // 1 command is a filter
-      // 2 command is to present
-      // 3 command defaults to filter
       $this->$cmd($qualifiers);
-
     }
     return $this->results;
-  //$test = function () {};
   }
 
-  public function getCategories ()
+  public function categories ()
   {
     return $this->categories;
   }
 
-  public function getCatKeys()
+  public function catKeys ()
   {
-    return $this->catKeys;
+    if ($this->category != null) {
+      $category = $this->category;
+      if (isset($this->catKeys[$category])) return $this->catKeys[$category];
+    }
+    return [];
+  }
+
+  public function category ()
+  {
+    return $this->category;
+  }
+
+  public function catKey ()
+  {
+
   }
 
   private function entity ($qualifiers)
@@ -73,35 +78,19 @@ class dataBuilder {
     //$this->results[] = $this->catKeys;
   }
 
-
   private function mainList ($qualifiers = null)
   {
     // Default - No qulifiers for list so return categories.
-    if ($qualifiers == null) {
-      $this->results = $this->categories;
-      return $this;
-    }
-    $count = 0;
+    if ($qualifiers == null) return;
     $this->results = $this->entities;
-    foreach ($qualifiers as $qualifyer) {
-      if ($count === 0) $this->qualify($qualifyer);
-      if ($count === 1) $this->qualify($qualifyer, 'title');
+    foreach ($qualifiers as $key => $qualifyer) {
+      if ($key === 0) $this->qualify($qualifyer);
+      if ($key === 1) $this->qualify($qualifyer, 'title');
       $count++;
     }
-
     if ($this->category != null) {
-      //\ark\pr($this->catKeys,'','end');
-      \ark\pr($this->category,'chosen category');
-      $new = [];
-      foreach ($this->catKeys as $key => $list) {
-        $target = strtolower($key);
-        if (stripos($target, $this->category) > -1) {
-          $new[] = $list;
-        }
-      }
-      $this->catKeys = $new;
+\ark\pr($this->category,'chosen category');
     }
-
   }
 
   private function qualify ($qualifyer, $listKey = 'category')
@@ -123,7 +112,10 @@ class dataBuilder {
   {
     $new = [];
     foreach($this->results as $result) {
-      $new[] = $result->title;
+      $obj = (object) [
+        'title' => $result->title,
+      ];
+      $new[] = $obj;
     }
     $this->results = $new;
   }
@@ -131,7 +123,6 @@ class dataBuilder {
   function info ()
   {
     $new = [];
-
     foreach($this->results as $result) {
       if ($this->type == 'dino') {
         $new[] = $this->dinoInfo($result);
@@ -139,7 +130,6 @@ class dataBuilder {
         $new[] = $this->entityInfo($result);
       }
     }
-
     $this->results = $new;
   }
 
@@ -150,6 +140,7 @@ class dataBuilder {
       'category' => $result->category,
       'title' => $result->title,
       'giveItem' => $result->giveItem,
+      'info' => $result->info,
     ];
     return $obj;
   }
@@ -162,26 +153,10 @@ class dataBuilder {
       'title' => $result->title,
       'summon' => $result->summon,
       'spawn' => $result->spawn,
+      'info' => $result->info,
     ];
     return $obj;
   }
 
-  /**
-   * Filters the entity list by command.
-   * @return [type] [description]
-   */
-  private function filter ($cmd, $qualifiers)
-  {
-
-  }
-
-  /**
-   * Presents the remaing data (ie: removes unwanted entity attributes.)
-   * @return [type] [description]
-   */
-  private function presenter ()
-  {
-
-  }
 }
 ?>

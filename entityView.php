@@ -2,8 +2,11 @@
 include 'ark.php';
 
 //echo '<pre>';
+//print_r($results);
 //echo '<pre>', print_r($catWords), '</pre>';
 $resultCount = count($results);
+
+
 
 ?>
 
@@ -11,7 +14,7 @@ $resultCount = count($results);
 <html>
   <head>
     <meta charset="utf-8">
-    <title></title>
+    <title>Entity Viewer</title>
     <style>
       body {font-family: Tahoma;}
       .categories {background-color: #eeeeee; font-size: large;}
@@ -28,7 +31,7 @@ $resultCount = count($results);
 <div class="categories">
   <?php
     foreach ($categories as $category => $count) {
-      echo '<a class="category ',$category,'" href="entityView.php?list=',$category,'&title">',$category,'</a> (', $count, ') | ';
+      echo '<a class="category ',$category,'" href="?',$type,'&list[]=',$category,'">',$category,'</a> (', $count, ') | ';
     }
   ?>
 </div>
@@ -37,7 +40,7 @@ $resultCount = count($results);
   <?php
     if (count($catWords) > 0) {
       foreach ($catWords as $word => $null) {
-        echo '<a class="catword ',$word,'" href="entityView.php?list=',$catName,'&title=',$word,'&info" >',$word,'</a> | ';
+        echo '<a class="catword ',$word,'" href="?',$type,'&list[]=',$cmds['list'][0],'&list[]=',$word,'" >',$word,'</a> | ';
       }
     }
    ?>
@@ -50,16 +53,23 @@ $resultCount = count($results);
   <?php
 
     foreach ($results as $key => $result) {
-      echo '
-      <tr><td><a href="entityView.php?title=',$result->title,'&details">',$result->title,'</a></td>
-      <td>',$result->info,'</td></tr>';
-      if (isset($_GET['details'])) {
-          echo '<div class="details" >';
+      if (isset($_GET['info'])) {
+        echo '
+        <tr><td><a href="?',$type,'&list[]=',$result->category,'&list[]=',$result->title,'&info">',$result->title,'</a></td>
+        </tr>';
+        echo '<div class="details" >';
         foreach($result as $name => $value) {
           echo '<tr><td>',$name,'<td>',$value,'</td></tr>';
         }
         echo '</div>';
+      } else {
+        echo '
+        <tr><td><a href="?',$type,'&list[]=',$result->category,'&list[]=',$result->title,'&info">',$result->title,'</a></td>
+        <td>',$result->info,'</td></tr>';
       }
+
+
+
     }
     ?>
 

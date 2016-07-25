@@ -8,7 +8,10 @@
 </head>
 <body>
   <div>
-    <a href="ark.php?entity&list">Entity Viewer</a>
+    <a href="entityView.php?entity">Item Viewer</a>
+  </div>
+  <div>
+    <a href="entityView.php?dino">Dino Viewer</a>
   </div>
 </body>
 </html>

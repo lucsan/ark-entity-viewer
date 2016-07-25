@@ -7,6 +7,7 @@ namespace ark;
 $vector = null;
 
 if (!isset($env)) $env = 'dev';
+$env = 'live';
 
 switch ($env) {
   case 'live': break;
@@ -18,7 +19,8 @@ switch ($env) {
 
 function pr ($data, $title = null, $kill = false)
 {
-  global $vector;
+  global $vector, $env;
+  if ($env == 'live') return;
   switch ($vector) {
     case 'cli': prc($data, $title, $kill); break;
     case 'wsv': prh($data, $title, $kill); break;
