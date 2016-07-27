@@ -1,5 +1,5 @@
 <?php
-
+namespace ark\tool;
 /**
  * Provides a simple basic rcon client.
  * Usage:-
